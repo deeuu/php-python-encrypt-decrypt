@@ -1,4 +1,5 @@
 <?php
+namespace shared\cipher;
 
 /**
  * Valid encryption methods AES-256-CFB 
@@ -7,7 +8,7 @@
  * $php_encrypted      = $cypher->encrypt('test');
  * $php_decrypted      = $cypher->decrypt($php_encrypted);
  */
-class MyCypher {
+class MyCipher {
 
     private $key = 'asdfa923aksadsYahoasdw998sdsads';
     private $iv = null;
@@ -16,7 +17,7 @@ class MyCypher {
     private $padwith = '`';
 
     /*
-     * construct for cypher class - get, set key and iv
+     * construct for cipher class - get, set key and iv
      */
 
     function __construct($iv, $key = null) {
@@ -84,5 +85,43 @@ class MyCypher {
             die('Error : ' . $e->getMessage());
         }
     }
+    
 
+    public function encrypt_includes_iv($secret) {
+
+        try {
+
+            $padded_secret = $secret . str_repeat($this->padwith, ($this->blocksize - strlen($secret) % $this->blocksize));
+            $encrypted_string = openssl_encrypt($padded_secret, $this->method, $this->getKEY(), OPENSSL_RAW_DATA, $this->getIV());
+            $encrypted_secret = base64_encode($this->getIV() . $encrypted_string);
+
+            return $encrypted_secret;
+        } catch (Exception $e) {
+            die('Error : ' . $e->getMessage());
+        }
+    }
+
+    public function decrypt_includes_iv($secret) {
+        try {
+            $decoded_secret = base64_decode($secret);
+            $iv_hash = substr($decoded_secret, 0, 16);
+            $decoded_secret = substr($decoded_secret, 16);
+            $decrypted_secret = openssl_decrypt($decoded_secret, $this->method, $this->getKEY(), OPENSSL_RAW_DATA, $iv_hash);
+            return rtrim($decrypted_secret, $this->padwith);
+        } catch (Exception $e) {
+            die('Error : ' . $e->getMessage());
+        }
+    }
+}
+
+function encrypt_with_random_iv($secret, $key) {
+
+  $iv = openssl_random_pseudo_bytes(16);
+  $cipher = new MyCipher($iv, $key);
+  return $cipher->encrypt_includes_iv($secret);
+}
+
+function decrypt_includes_random_iv($secret, $key) {
+  $cipher = new MyCipher('', $key);
+  return $cipher->decrypt_includes_iv($secret);
 }
