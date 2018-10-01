@@ -101,17 +101,3 @@ class MyCipher:
                          segment_size=128)
 
         return cipher.decrypt(encrypted).rstrip(self.padwith.encode('utf-8'))
-
-
-if __name__ == '__main__':
-
-    cipher = MyCipher('1234', '1234')
-    encrypted = cipher.encrypt('hello')
-    decrypted = cipher.decrypt(encrypted)
-    print(decrypted)
-
-    encrypted = cipher.encrypt_includes_iv('hello')
-
-    cipher = MyCipher('', '1234')
-    decrypted = cipher.decrypt_includes_iv(encrypted)
-    print(decrypted)
