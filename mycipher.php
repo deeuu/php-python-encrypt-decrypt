@@ -22,35 +22,21 @@ class MyCipher {
 
     function __construct($iv = null, $key = null) {
 
-        $this->key = $key;
-        $this->iv = $iv;
-        $this->random_iv = openssl_random_pseudo_bytes(16, true);
-    }
+        $this->input_key = $key;
 
-    /*
-     * get hased key - if key is not set on init, then default key wil be used
-     */
-
-    private function getKEY() {
-
-        if (empty($this->key)) {
+        if (!empty($key)) {
             $this->key = $key;
         }
 
-        return substr(hash('sha256', $this->key), 0, 32);
-    }
+        $this->key = substr(hash('sha256', $this->key), 0, 32);
 
-    /*
-     * get hashed IV value - if no IV values then it throw error
-     */
+        $this->input_iv = $iv;
 
-    private function getIV() {
-
-        if (empty($this->iv)) {
-            $this->iv = $this->random_iv; 
+        if (!empty($iv)) {
+            $this->iv = $this->openssl_random_pseudo_bytes(16, true);
         }
 
-        return substr(hash('sha256', $this->iv), 0, 16);
+        $this->iv = substr(hash('sha256', $this->iv), 0, 16);
     }
 
     /*
@@ -62,7 +48,7 @@ class MyCipher {
         try {
 
             $padded_secret = $secret . str_repeat($this->padwith, ($this->blocksize - strlen($secret) % $this->blocksize));
-            $encrypted_string = openssl_encrypt($padded_secret, $this->method, $this->getKEY(), OPENSSL_RAW_DATA, $this->getIV());
+            $encrypted_string = openssl_encrypt($padded_secret, $this->method, $this->key, OPENSSL_RAW_DATA, $this->iv);
             $encrypted_secret = base64_encode($encrypted_string);
             return $encrypted_secret;
         } catch (Exception $e) {
@@ -77,7 +63,7 @@ class MyCipher {
     public function decrypt($secret) {
         try {
             $decoded_secret = base64_decode($secret);
-            $decrypted_secret = openssl_decrypt($decoded_secret, $this->method, $this->getKEY(), OPENSSL_RAW_DATA, $this->getIV());
+            $decrypted_secret = openssl_decrypt($decoded_secret, $this->method, $this->key, OPENSSL_RAW_DATA, $this->iv);
             return rtrim($decrypted_secret, $this->padwith);
         } catch (Exception $e) {
             die('Error : ' . $e->getMessage());
@@ -90,8 +76,8 @@ class MyCipher {
         try {
 
             $padded_secret = $secret . str_repeat($this->padwith, ($this->blocksize - strlen($secret) % $this->blocksize));
-            $encrypted_string = openssl_encrypt($padded_secret, $this->method, $this->getKEY(), OPENSSL_RAW_DATA, $this->getIV());
-            $encrypted_secret = base64_encode($this->getIV() . $encrypted_string);
+            $encrypted_string = openssl_encrypt($padded_secret, $this->method, $this->key, OPENSSL_RAW_DATA, $this->iv);
+            $encrypted_secret = base64_encode($this->iv . $encrypted_string);
 
             return $encrypted_secret;
         } catch (Exception $e) {
@@ -104,7 +90,7 @@ class MyCipher {
             $decoded_secret = base64_decode($secret);
             $iv_hash = substr($decoded_secret, 0, 16);
             $decoded_secret = substr($decoded_secret, 16);
-            $decrypted_secret = openssl_decrypt($decoded_secret, $this->method, $this->getKEY(), OPENSSL_RAW_DATA, $iv_hash);
+            $decrypted_secret = openssl_decrypt($decoded_secret, $this->method, $this->key, OPENSSL_RAW_DATA, $iv_hash);
             return rtrim($decrypted_secret, $this->padwith);
         } catch (Exception $e) {
             die('Error : ' . $e->getMessage());
