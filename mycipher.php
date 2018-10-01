@@ -20,13 +20,11 @@ class MyCipher {
      * construct for cipher class - get, set key and iv
      */
 
-    function __construct($iv, $key = null) {
+    function __construct($iv = null, $key = null) {
 
-        if (is_string($key)) {
-            $this->key = $key;
-        }
-
+        $this->key = $key;
         $this->iv = $iv;
+        $this->random_iv = openssl_random_pseudo_bytes(16, true);
     }
 
     /*
@@ -36,7 +34,7 @@ class MyCipher {
     private function getKEY() {
 
         if (empty($this->key)) {
-            die('Key not set!');
+            $this->key = $key;
         }
 
         return substr(hash('sha256', $this->key), 0, 32);
@@ -49,7 +47,7 @@ class MyCipher {
     private function getIV() {
 
         if (empty($this->iv)) {
-            die('IV not set!');
+            $this->iv = $this->random_iv; 
         }
 
         return substr(hash('sha256', $this->iv), 0, 16);
@@ -112,16 +110,4 @@ class MyCipher {
             die('Error : ' . $e->getMessage());
         }
     }
-}
-
-function encrypt_with_random_iv($secret, $key) {
-
-  $iv = openssl_random_pseudo_bytes(16);
-  $cipher = new MyCipher($iv, $key);
-  return $cipher->encrypt_includes_iv($secret);
-}
-
-function decrypt_includes_random_iv($secret, $key) {
-  $cipher = new MyCipher('', $key);
-  return $cipher->decrypt_includes_iv($secret);
 }

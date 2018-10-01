@@ -10,6 +10,7 @@
 """
 
 from Crypto.Cipher import AES
+from Crypto import Random
 import base64
 import hashlib
 import sys
@@ -28,37 +29,42 @@ class MyCipher:
     """
     construct for cipher class - get, set key and iv
     """
-    def __init__(self, iv, key=''):
+    def __init__(self, iv='', key=''):
         
-        if(not key): 
-            key = self.rawkey
-            
-        self.key    = key
-        self.iv     = iv
+        self.key   = key
+        self.iv  = iv
+        self.random_iv = Random.get_random_bytes(16)
     
     """
     get hased key - if key is not set on init, then default key wil be used
     """
     def getKEY(self):
-        if(not self.key):
-            sys.exit()
+        if not self.key:
+            self.key = self.rawkey
             
-        return hashlib.sha256(self.key.encode('utf-8')).hexdigest()[:32]
+        return (
+            hashlib.sha256(self.key.encode('utf-8'))
+            .hexdigest()[:32]
+            .encode('utf-8')
+        )
     
     """
     get hashed IV value - if no IV values then it throw error
     """
     def getIV(self):
-        if(not self.iv):
-            sys.exit()
-            
-        iv = hashlib.sha256(self.iv.encode('utf-8')).hexdigest()[:16]
-        return iv
+
+        if not self.iv:
+            iv = self.random_iv
+        else:
+            iv = self.iv.encode('utf-8')
+
+        out = hashlib.sha256(iv).hexdigest()[:16].encode('utf-8')
+        return out
 
     def get_cipher(self):
-        return AES.new(self.getKEY().encode("utf-8"),
+        return AES.new(self.getKEY(),
                        self.method,
-                       self.getIV().encode("utf-8"),
+                       iv=self.getIV(),
                        segment_size=128)
     
     """
@@ -66,7 +72,7 @@ class MyCipher:
     """
     def encrypt(self, raw):
         cipher = self.get_cipher()
-        return base64.b64encode(cipher.encrypt(self.pad(raw).encode("utf-8")))
+        return base64.b64encode(cipher.encrypt(self.pad(raw).encode('utf-8')))
     
     """
     Decrypt given string using AES standard
@@ -83,7 +89,7 @@ class MyCipher:
     def encrypt_includes_iv(self, raw):
 
         cipher = self.get_cipher()
-        out = base64.b64encode(self.getIV().encode('utf-8') +
+        out = base64.b64encode(self.getIV() +
                                cipher.encrypt(self.pad(raw).encode('utf-8')))
         return out
 
@@ -95,7 +101,7 @@ class MyCipher:
         encrypted = base64.b64decode(encrypted)
         iv_hash, encrypted = encrypted[:16], encrypted[16:]
 
-        cipher = AES.new(self.getKEY().encode("utf-8"),
+        cipher = AES.new(self.getKEY(),
                          self.method,
                          iv_hash,
                          segment_size=128)

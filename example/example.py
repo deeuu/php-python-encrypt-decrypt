@@ -10,9 +10,9 @@ decrypted = cipher.decrypt(encrypted)
 print('decrypted: ', decrypted)
 
 print('~~~')
+cipher = MyCipher()
 encrypted = cipher.encrypt_includes_iv(secret)
-print('Encrypted and shipped with IV: ', encrypted)
+print('Encrypted msg, shipped with IV: ', encrypted)
 
-cipher = MyCipher(iv=None)
 decrypted = cipher.decrypt_includes_iv(encrypted)
 print('Decrypted: ', decrypted)
