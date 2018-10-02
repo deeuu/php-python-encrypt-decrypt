@@ -1,6 +1,4 @@
 <?php
-namespace shared\cipher;
-
 /**
  * Valid encryption methods AES-256-CFB 
  * 
@@ -33,7 +31,9 @@ class MyCipher {
         $this->input_iv = $iv;
 
         if (!empty($iv)) {
-            $this->iv = $this->openssl_random_pseudo_bytes(16, true);
+            $this->iv = $iv;
+        } else {
+            $this->iv = openssl_random_pseudo_bytes(16);
         }
 
         $this->iv = substr(hash('sha256', $this->iv), 0, 16);

@@ -1,6 +1,6 @@
 from mycipher import MyCipher
 
-cipher = MyCipher(iv='1234')
+cipher = MyCipher('1234', 'my_key')
 secret = 'secret'
 
 print('~~~')
