@@ -18,7 +18,8 @@ class MyCipher {
      * construct for cipher class - get, set key and iv
      */
 
-    function __construct($iv = null, $key = null) {
+    function __construct($iv = null, $key = null,
+                         $hash_iv=true, $hash_key=true) {
 
         $this->input_key = $key;
 
@@ -26,7 +27,9 @@ class MyCipher {
             $this->key = $key;
         }
 
-        $this->key = substr(hash('sha256', $this->key), 0, 32);
+        if ($hash_key) {
+            $this->key = substr(hash('sha256', $this->key), 0, 32);
+        }
 
         $this->input_iv = $iv;
 
@@ -36,7 +39,9 @@ class MyCipher {
             $this->iv = openssl_random_pseudo_bytes(16);
         }
 
-        $this->iv = substr(hash('sha256', $this->iv), 0, 16);
+        if ($hash_iv) {
+            $this->iv = substr(hash('sha256', $this->iv), 0, 16);
+        }
     }
 
     /*

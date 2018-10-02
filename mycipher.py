@@ -29,7 +29,7 @@ class MyCipher:
     """
     construct for cipher class - get, set key and iv
     """
-    def __init__(self, iv='', key=''):
+    def __init__(self, iv='', key='', hash_iv=True, hash_key=True):
         
         self.input_iv = iv
         self.input_key = key
@@ -37,18 +37,20 @@ class MyCipher:
         if not key:
             key = self.rawkey
 
-        self.key = (
-            hashlib.sha256(key.encode('utf-8'))
-            .hexdigest()[:32]
-            .encode('utf-8')
-        )
+        if hash_key:
+            self.key = (
+                hashlib.sha256(key.encode('utf-8'))
+                .hexdigest()[:32]
+                .encode('utf-8')
+            )
 
         if not iv:
             self.iv = Random.get_random_bytes(16)
         else:
             self.iv = iv.encode('utf-8')
 
-        self.iv = hashlib.sha256(self.iv).hexdigest()[:16].encode('utf-8')
+        if hash_iv:
+            self.iv = hashlib.sha256(self.iv).hexdigest()[:16].encode('utf-8')
 
     def get_cipher(self):
         return AES.new(self.key,
